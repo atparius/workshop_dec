@@ -1,4 +1,3 @@
-import "babel-polyfill";
 import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
 //import font loader
@@ -6,267 +5,326 @@ import { FontLoader } from "three/examples/jsm/loaders/FontLoader";
 //add text geometry
 import { TextGeometry } from "three/examples/jsm/geometries/TextGeometry";
 
-export default class Application {
+import Firebase from "./Firebase";
+// import Lettre from "./Lettre";
+export default class App {
   constructor() {
-    //-----------------------this.scene-----------------------
-    this.scene = new THREE.Scene();
+    this.position = 8;
+    const urlParams = new URLSearchParams(window.location.search);
+    this.version = urlParams.get("version");
 
-    //-----------------------this.camera-----------------------
-    //this.camera setting
-    // var fov = 75;
-    // var aspect = window.innerWidth / window.innerHeight;
-    // var near = 0.1;
-    // var far  = 1000;
-    // var this.camera = new THREE.Perspectivethis.camera(fov, aspect, near, far);
-    // this.camera.position.set(0, -400, 400);
-
-    this.camera = new THREE.OrthographicCamera(
-      window.innerWidth / -2,
-      window.innerWidth / 2,
-      window.innerHeight / 2,
-      window.innerHeight / -2,
-      -500,
-      500
-    );
-    this.camera.position.set(0, 10, 10);
-    // this.camera.rotation.x = -45
-
-    this.scene.add(this.camera);
-
-    // //-----------------------controls-----------------------
-    // let controls = new OrbitControls(this.camera, this.renderer.domElement);
-    // controls.update();
-
-    //-----------------------mesh-----------------------
-    //shapes
-    // BoxGeometry
-    // CapsuleGeometry
-    // CircleGeometry
-    // ConeGeometry
-    // CylinderGeometry
-    // DodecahedronGeometry
-    // EdgesGeometry
-    // ExtrudeGeometry
-    // IcosahedronGeometry
-    // LatheGeometry
-    // OctahedronGeometry
-    // PlaneGeometry
-    // PolyhedronGeometry
-    // RingGeometry
-    // ShapeGeometry
-    // SphereGeometry
-    // TetrahedronGeometry
-    // TorusGeometry
-    // TorusKnotGeometry
-    // TubeGeometry
-
-    //materials
-    // Material
-    // MeshBasicMaterial
-    // MeshDepthMaterial
-    // MeshLambertMaterial
-    // MeshMatcapMaterial
-    // MeshNormalMaterial
-    // MeshPhongMaterial
-    // MeshPhysicalMaterial
-    // MeshStandardMaterial
-    // MeshToonMaterial
-
-    //cube
-    var geometry_1 = new THREE.BoxGeometry(50, 50, 50);
-    var material_1 = new THREE.MeshPhongMaterial({ color: 0xff0000 });
-    var cube_1 = new THREE.Mesh(geometry_1, material_1);
-    cube_1.castShadow = true;
-    this.scene.add(cube_1);
-
-    //sphere
-    const geometry = new THREE.SphereGeometry(25, 32, 16);
-    const material = new THREE.MeshBasicMaterial({ color: 0xffff00 });
-    const sphere = new THREE.Mesh(geometry, material);
-    sphere.position.y = -50;
-    // this.scene.add( sphere );
-
-    //cube with texture
-    let loader = new THREE.TextureLoader();
-    var texture_2 = loader.load("img/cha-01.png");
-    texture_2.wrapS = THREE.RepeatWrapping;
-    texture_2.wrapT = THREE.RepeatWrapping;
-    texture_2.repeat.set(1, 1);
-    var geometry_2 = new THREE.BoxGeometry(50, 50, 50);
-    var material_2 = new THREE.MeshPhongMaterial({
-      color: 0x2196f3,
-      map: texture_2,
-      side: THREE.DoubleSide,
-      opacity: 0.5,
-    });
-    var cube_2 = new THREE.Mesh(geometry_2, material_2);
-    // cube_2.castShadow = true;
-    cube_2.position.x = -50;
-    // this.scene.add(cube_2);
-
-    var texture = loader.load("img/cha-00.png");
-    texture.wrapS = THREE.RepeatWrapping;
-    texture.wrapT = THREE.RepeatWrapping;
-    texture.repeat.set(10, 10);
-    // const plane = new THREE.Mesh( new THREE.PlaneGeometry( 500, 500 ), new THREE.MeshBasicMaterial( {map:texture, side: THREE.DoubleSide} ) );
-    //     plane.rotation.x=degrees_to_radians(90)
-    //     plane.position.x = final_length_val/2 - 0.5
-    //     plane.position.x = 0.5
-    //     plane.position.y = -1.5
-    //     this.scene.add(plane)
-
-    const plane = new THREE.Mesh(
-      new THREE.PlaneGeometry(1200, 1200),
-      new THREE.MeshStandardMaterial({
-        color: 0xcccccc,
-        side: THREE.DoubleSide,
-      })
-    );
-    plane.receiveShadow = true;
-    plane.rotation.x = this.degrees_to_radians(90);
-    plane.position.y = -25;
-    this.scene.add(plane);
-
-    //group
-    const group = new THREE.Group();
-    this.scene.add(group);
-
-    let fontloader = new FontLoader();
-    fontloader.load(
-      "https://s3-us-west-2.amazonaws.com/s.cdpn.io/254249/helvetiker_regular.typeface.json",
-      function (font) {
-        let message = "Threejs";
-        let geometry_4 = new TextGeometry(message, {
-          font: font,
-          size: 30,
-          height: 5,
-          curveSegments: 12,
-          bevelEnabled: true,
-          bevelThickness: 3,
-          bevelSize: 3,
-          bevelSegments: 1,
-        });
-        let material_4 = new THREE.MeshBasicMaterial({
-          color: 0xff00ff,
-        });
-        geometry.center();
-        let mesh = new THREE.Mesh(geometry_4, material_4);
-        mesh.position.y = 50;
-        this.scene.add(mesh);
+    const loader = new FontLoader();
+    loader.load(
+      "https://raw.githubusercontent.com/mrdoob/three.js/dev/examples/fonts/helvetiker_regular.typeface.json",
+      (font) => {
+        this.font = font;
+        this.init();
       }
     );
 
-    //-----------------------light-----------------------
-    // const color = 0xFF0000;
-    // const pointLight = new THREE.PointLight(color);
-    // pointLight.position.set(0, 300, 200);
-    // this.scene.add(pointLight);
+    // this.init();
+  }
 
-    const color = 0xffffff;
-    const intensity = 0.5;
-    const light = new THREE.AmbientLight(color, intensity);
-    this.scene.add(light);
+  async init() {
+    this.data = await this.loadJSON("./JSON/RoyalWithCheese.json");
+    this.audio = await this.loadAudio("./audio/RoyalWithCheese.mp3");
+    this.prepare("RoyalWithCheese", this.data);
+    this.initThree();
+    this.createMap();
+    if (this.version == 1) this.initStartButton();
+    // this.start();
+  }
 
-    const directionalLight = new THREE.SpotLight(
-      0xffffff,
-      1,
-      0,
-      Math.PI / 4,
-      1
-    );
-    directionalLight.castShadow = true;
-    directionalLight.position.set(0, 100, 80);
-    this.scene.add(directionalLight);
-
-    //-----------------------fog-----------------------
-    // {
-    //   const color = 0xFF0000;  // white
-    //   const near = 10;
-    //   const far = 100;
-    //   this.scene.fog = new THREE.Fog(color, near, far);
-    // }
-
-    // {
-    //   const color = 0x00FF00;
-    //   const density = 0.1;
-    //   this.scene.fog = new THREE.FogExp2(color, density);
-    // }
-
-    // //-----------------------animations-----------------------
-    // var time = 0;
-
-    // function onUpdate() {
-    //   //   time++;
-    //   //   if (time < 1000) {
-    //   //     this.camera.position.y = animation_calucator(time, 0, 1000, 0, -100);
-    //   //   } else if (time < 2000) {
-    //   //     this.camera.position.y = animation_calucator(time, 1000, 1100, -100, -300);
-    //   //   }
-    // }
-    // function animation_calucator(time, start, end, value_1, value_2) {
-    //   var modified_time =
-    //     easeInOutCubic((time - start) / (end - start)) * (end - start) + start;
-    //   return (
-    //     value_1 +
-    //     ((value_2 - value_1) * (modified_time - start)) / (end - start)
-    //   );
-    // }
-    // //https://easings.net/
-    // function easeOutCubic(x) {
-    //   return 1 - Math.pow(1 - x, 3);
-    // }
-    // function easeInOutCubic(x) {
-    //   return x < 0.5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2;
-    // }
-
-    //-----------------------keyboard input-----------------------
-    //keyboard input
-    var texture_3 = loader.load("img/cha-02.png");
-    texture_3.wrapS = THREE.RepeatWrapping;
-    texture_3.wrapT = THREE.RepeatWrapping;
-    texture_3.repeat.set(1, 1);
-    var geometry_3 = new THREE.BoxGeometry(50, 50, 50);
-    var material_3 = new THREE.MeshBasicMaterial({
-      color: 0x2196f3,
-      map: texture_3,
-      side: THREE.DoubleSide,
+  initStartButton() {
+    const button = document.createElement("button");
+    button.innerHTML = "Start";
+    button.style.position = "absolute";
+    //center the button in screen
+    button.style.left = "50%";
+    button.style.top = "50%";
+    button.style.transform = "translate(-50%, -50%)";
+    button.style.cursor = "pointer";
+    button.addEventListener("click", () => {
+      document.body.removeChild(button);
+      this.start();
     });
-    var cube_3 = new THREE.Mesh(geometry_3, material_3);
-    cube_3.position.y = -100;
-    // document.addEventListener("keydown", press);
-    // function press(e) {
-    //   if (e.keyCode === 87 /* w */) {
-    //     this.scene.add(cube_3);
-    //   }
-    // }
+    document.body.appendChild(button);
+  }
 
-    //-----------------------this.renderer-----------------------
-    this.renderer = new THREE.WebGLRenderer({ antialias: 1, alpha: 1 });
-    this.renderer.setPixelRatio(
-      window.devicePixelRatio ? window.devicePixelRatio : 1
+  initThree() {
+    this.angle = 0;
+    this.counter = 0;
+    this.scene = new THREE.Scene();
+    this.camera = new THREE.PerspectiveCamera(
+      75,
+      window.innerWidth / window.innerHeight,
+      0.1,
+      1000
     );
+    this.renderer = new THREE.WebGLRenderer({
+      antialias: true,
+    });
     this.renderer.setSize(window.innerWidth, window.innerHeight);
     this.renderer.shadowMap.enabled = true;
     this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-    document.getElementById("main").appendChild(this.renderer.domElement);
+    document.body.appendChild(this.renderer.domElement);
+    this.controls = new OrbitControls(this.camera, this.renderer.domElement);
+    this.camera.position.z = 110;
+    this.camera.goal = this.position;
+    this.camera.position.y = 40;
+    this.camera.position.x = 20;
+    this.camera.rotation.x = -Math.PI / 2;
+    // this.camera.lookAt(0, 0, 0);
 
-    //-----------------------controls-----------------------
-    let controls = new OrbitControls(this.camera, this.renderer.domElement);
-    controls.update();
+    // this.scene.fog = new THREE.Fog(0x000000, 0.005, 50);
 
-    this.render();
+    // add light
+    const light = new THREE.AmbientLight(0xffffff);
+    this.scene.add(light);
 
-    //
+    this.directionalLight = new THREE.SpotLight(0xffffff, 1, 0, Math.PI / 4, 1);
+    this.directionalLight.castShadow = true;
+    this.directionalLight.position.set(0, 10, 8);
+    // this.scene.add(this.directionalLight);
+
+    //add "endless" grey plane as ground
+    const planeGeometry = new THREE.PlaneGeometry(1200, 1200);
+    const planeMaterial = new THREE.MeshStandardMaterial({
+      color: 0xcccccc,
+    });
+
+    const plane = new THREE.Mesh(planeGeometry, planeMaterial);
+    plane.receiveShadow = true;
+    plane.rotateX(-Math.PI / 2);
+    //set plane double sided
+    plane.material.side = THREE.DoubleSide;
+
+    this.scene.add(plane);
+
+    // //create letter
+    // // create a word
+    // // create array of words composed with 6 letters only
+    // this.words = ["viktor", "julien", "lucile", "michel", "lauren"];
+    // this.matrices = [];
+    // this.width = 6 * 6;
+    // for (let index = 0; index < 6; index++) {
+    //   this.matrices.push(new Lettre(this.scene, index * 6 - this.width / 2, 0));
+    // }
+
+    // setInterval(() => {
+    //   const shifted = this.words.shift();
+    //   this.words.push(shifted);
+    //   const letters = shifted.split("");
+    //   letters.forEach((letter, index) => {
+    //     this.matrices[index].extrude(letter);
+    //   });
+    // }, 1000);
+
+    this.firebase = new Firebase();
+    setTimeout(() => {
+      this.firebase.addEventListener(
+        "TYPE_CITY/time",
+        this.onSyncTime.bind(this)
+      );
+
+      // this.firebase.addEventListener("ECAL/MID", (data) => {
+      //   console.log(data);
+      // });
+
+      // }
+    }, 1000);
+    this.firebase.send("TYPE_CITY/time", -1);
+
+    this.animate();
   }
 
-  render() {
-    requestAnimationFrame(this.render.bind(this));
-    // this.onUpdate();
+  createMap() {
+    let x = 0;
+    let z = 0;
+    let prevX = 0;
+    let prevZ = 0;
+    let angle = 0;
+    let group = new THREE.Group();
+    this.scene.add(group);
+    this.allWords.forEach((word, index) => {
+      console.log(word.property.x);
+      if (word.property.x != prevX || word.property.z != prevZ) {
+        x = word.property.x;
+        z = word.property.z;
+        prevX = x;
+        prevZ = z;
+        group = new THREE.Group();
+        group.rotation.y = word.property.angle * (Math.PI / 180);
+        group.position.z = z;
+        group.position.x = x;
+        this.scene.add(group);
+        x = 0;
+      }
+
+      x = this.createTextForMap(word.text, x, 0, group);
+
+      console.log(x);
+    });
+  }
+
+  onSyncTime(previousTime) {
+    // console.log(previousTime);
+    if (previousTime > -1) this.showWords(previousTime);
+  }
+
+  loadJSON(url) {
+    return fetch(url).then((response) => response.json());
+  }
+
+  loadAudio(url) {
+    const audio = new Audio();
+    audio.src = url;
+    audio.load();
+    return audio;
+  }
+
+  prepare(name, data) {
+    this.allWords = [];
+    let property = null;
+    data[name].forEach((element) => {
+      element["timing"].forEach((word) => {
+        if (word["property"]) {
+          property = word["property"];
+        }
+        this.allWords.push({
+          text: word["word"],
+          start: word["start_time"],
+          end: word["start_end"],
+          property: property,
+        });
+      });
+    });
+    console.log(this.allWords);
+  }
+
+  start() {
+    this.audio.play();
+    // this.showWords(false, 0);
+    this.firebase.send("TYPE_CITY/time", 0);
+  }
+
+  showWords(previousTime = 0) {
+    const word = this.allWords.shift();
+
+    console.log(word);
+    if (word) {
+      console.log("WORD IS AVAILABLE");
+      setTimeout(() => {
+        console.log("WORD IS SHOWN");
+        if (this.version == word.screen)
+          this.createText(word.text.toUpperCase(), word.start, word.property);
+        // if (this.version == 1) {
+        //   console.log("Should send to fB", word.start);
+        //   this.firebase.send("TYPE_CITY/time", word.start);
+        // }
+      }, (word.start - previousTime) * 1000);
+    }
+  }
+
+  createText(text, previousTime, property) {
+    //counter to randomize disposition
+    this.counter++;
+    this.showWords(previousTime);
+    // if (this.version == 1) this.firebase.send("TYPE_CITY/time", previousTime);
+    // add text on scene
+    const loader = new FontLoader();
+    loader.load(
+      "https://raw.githubusercontent.com/mrdoob/three.js/dev/examples/fonts/helvetiker_regular.typeface.json",
+      (font) => {
+        const geometry = new TextGeometry(text, {
+          font: font,
+          size: property ? property["height"] : 1,
+          height: 0.1,
+          curveSegments: 12,
+          bevelEnabled: true,
+          bevelThickness: 0.8,
+          bevelSize: 0.001,
+          bevelOffset: 0,
+          bevelSegments: 1,
+        });
+        const material = new THREE.MeshPhongMaterial({
+          color: property ? parseInt(property["color"], 16) : 0xffffff,
+          flatShading: false,
+        });
+        this.text = new THREE.Mesh(geometry, material);
+        this.text.geometry.computeBoundingBox();
+        // console.log(this.text.geometry.boundingBox.max.x);
+        if (this.counter % 3 == 0) this.text.rotateZ(Math.PI / 2);
+        this.position += 3;
+        this.camera.goal = this.position + 5;
+        this.text.castShadow = true;
+        this.text.receiveShadow = true;
+        this.text.position.z = this.position;
+        this.text.position.x = this.position % 2 == 0 ? -1 : 1;
+        this.text.position.y = 0;
+
+        this.scene.add(this.text);
+      } //end of load callback
+    );
+  }
+
+  createTextForMap(text, x, z, group) {
+    console.log(x);
+    // const loader = new FontLoader();
+    // loader.load(
+    //   "https://raw.githubusercontent.com/mrdoob/three.js/dev/examples/fonts/helvetiker_regular.typeface.json",
+    //   (font) => {
+    const geometry = new TextGeometry(text, {
+      font: this.font,
+      size: 1,
+      height: 0.1,
+      curveSegments: 12,
+      bevelEnabled: true,
+      bevelThickness: 0.1,
+      bevelSize: 0.001,
+      bevelOffset: 0,
+      bevelSegments: 1,
+    });
+    const material = new THREE.MeshPhongMaterial({
+      color: 0xffffff,
+      flatShading: false,
+    });
+    this.text = new THREE.Mesh(geometry, material);
+    this.text.geometry.computeBoundingBox();
+    console.log(text, this.text.geometry.boundingBox);
+    this.text.castShadow = true;
+    this.text.receiveShadow = true;
+    this.text.position.z = 0;
+    let newX = !x ? 0 : x;
+    this.text.position.x = newX;
+    this.text.position.z = z;
+    this.text.rotation.x = -Math.PI / 2;
+    // this.text.rotation.z = angle;
+    group.add(this.text);
+    return this.text.geometry.boundingBox.max.x + newX + 0.5;
+    //   } //end of load callback
+    // );
+  }
+
+  animate() {
+    this.angle += 0.001;
+    // this.camera.position.x = Math.cos(this.angle) * 1;
+    // // smooth camera movement
+    // this.camera.position.z = this.lerp(
+    //   this.camera.position.z,
+    //   this.camera.goal,
+    //   0.05
+    // );
+    // this.camera.lookAt(0, 0, 0);
+    //set the spotlight position to the camera position
+    this.directionalLight.position.z = this.camera.position.z + 8;
+    this.directionalLight.position.y = 5;
+    requestAnimationFrame(this.animate.bind(this));
     this.renderer.render(this.scene, this.camera);
   }
 
-  degrees_to_radians(degrees) {
-    var pi = Math.PI;
-    return degrees * (pi / 180);
+  lerp(v0, v1, t) {
+    return v0 * (1 - t) + v1 * t;
   }
 }
+
